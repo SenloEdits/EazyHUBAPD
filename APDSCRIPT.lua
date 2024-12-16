@@ -19,10 +19,11 @@ local Tabs = {
 }
 
 -- Load saved state for the toggles
-local savedState = SaveManager:Load("EazyHubState", { farmingEnabled = false, autoReplayEnabled = false })
+local savedState = SaveManager:Load("EazyHubState", { farmingEnabled = false, autoReplayEnabled = false, autoSellEnabled = false })
 
 local farmingEnabled = savedState.farmingEnabled
 local autoReplayEnabled = savedState.autoReplayEnabled
+local autoSellEnabled = savedState.autoSellEnabled
 
 -- Define the farming toggle
 local farmingToggle = Tabs.Main:AddToggle("MyToggle", {
@@ -33,7 +34,7 @@ local farmingToggle = Tabs.Main:AddToggle("MyToggle", {
 -- Listen for toggle state changes and save them
 farmingToggle:OnChanged(function(value)
     farmingEnabled = value -- Update toggle state
-    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled }) -- Save state
+    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled }) -- Save state
     print("Farming Toggle changed:", farmingEnabled)
 end)
 
@@ -72,7 +73,7 @@ local autoReplayToggle = Tabs.Main:AddToggle("MyToggle", { Title = "Auto Replay"
 
 autoReplayToggle:OnChanged(function(value)
     autoReplayEnabled = value
-    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled }) -- Save state
+    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled }) -- Save state
     print("Auto Replay Toggle changed:", autoReplayEnabled)
 
     if autoReplayEnabled then
@@ -84,10 +85,8 @@ autoReplayToggle:OnChanged(function(value)
     end
 end)
 
--- Auto Save Configuration for Auto Sell after 10 minutes
-local autoSellEnabled = false
-
-local autoSellToggle = Tabs.Main:AddToggle("MyToggle", { Title = "Auto Sell after 10 minutes", Default = false })
+-- Auto Sell Toggle
+local autoSellToggle = Tabs.Main:AddToggle("MyToggle", { Title = "Auto Sell after 10 minutes", Default = autoSellEnabled })
 
 local function autoSell()
     while autoSellEnabled do
