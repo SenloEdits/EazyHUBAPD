@@ -1,43 +1,41 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 
--- Create the Window for Fluent GUI
 local Window = Fluent:CreateWindow({
     Title = "Eazy Hub " .. Fluent.Version,
     SubTitle = "by thors",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Acrylic = true,
     Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl -- Used when there's no MinimizeKeybind
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
 
--- Fluent Tab Creation
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
--- Initialize the farmingEnabled state
-local farmingEnabled = false
-local autoReplayEnabled = false
-local autoSellEnabled = false
+local savedState = SaveManager:Load("EazyHubState", { farmingEnabled = false, autoReplayEnabled = false, autoSellEnabled = false })
 
--- Define the farming toggle
-local farmingToggle = Tabs.Main:AddToggle("MyToggle", {
+local farmingEnabled = savedState.farmingEnabled
+local autoReplayEnabled = savedState.autoReplayEnabled
+local autoSellEnabled = savedState.autoSellEnabled
+
+local farmingToggle = Tabs.Main:AddToggle("FarmingToggle", {
     Title = "Enable farm",
-    Default = farmingEnabled -- Set the default state from saved state
+    Default = farmingEnabled
 })
 
--- Listen for toggle state changes
 farmingToggle:OnChanged(function(value)
-    farmingEnabled = value -- Update toggle state
+    farmingEnabled = value
+    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled })
     print("Farming Toggle changed:", farmingEnabled)
 end)
 
--- Script for "PlaceUnit"
 spawn(function()
     while true do
-        wait(2) -- Loop every 2 seconds
+        wait(2)
         if farmingEnabled then
             local args = {
                 [1] = "PlaceUnit",
@@ -50,10 +48,9 @@ spawn(function()
     end
 end)
 
--- Script for "UpgradeUnit"
 spawn(function()
     while true do
-        wait(1) -- Loop every 1 second
+        wait(1)
         if farmingEnabled then
             local args = {
                 [1] = "UpgradeUnit",
@@ -64,12 +61,11 @@ spawn(function()
     end
 end)
 
--- Auto Replay Toggle
-local autoReplayToggle = Tabs.Main:AddToggle("MyToggle", { Title = "Auto Replay", Default = autoReplayEnabled })
+local autoReplayToggle = Tabs.Main:AddToggle("AutoReplayToggle", { Title = "Auto Replay", Default = autoReplayEnabled })
 
 autoReplayToggle:OnChanged(function(value)
     autoReplayEnabled = value
-    print("Auto Replay Toggle changed:", autoReplayEnabled)
+    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled })
 
     if autoReplayEnabled then
         while autoReplayEnabled do
@@ -80,8 +76,7 @@ autoReplayToggle:OnChanged(function(value)
     end
 end)
 
--- Auto Sell Toggle
-local autoSellToggle = Tabs.Main:AddToggle("MyToggle", { Title = "Auto Sell after 10 minutes", Default = autoSellEnabled })
+local autoSellToggle = Tabs.Main:AddToggle("AutoSellToggle", { Title = "Auto Sell after 10 minutes", Default = autoSellEnabled })
 
 local function autoSell()
     while autoSellEnabled do
@@ -89,20 +84,15 @@ local function autoSell()
             [1] = "SellUnit",
             [2] = 1
         }
-
         game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(args))
-
-        -- Wait for 10 minutes (600 seconds)
         wait(600)
     end
 end
 
--- Listen for Auto Sell toggle state changes
 autoSellToggle:OnChanged(function(value)
     autoSellEnabled = value
-    print("Auto Sell toggled:", autoSellEnabled)
-
+    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled })
     if autoSellEnabled then
-        task.spawn(autoSell) -- Start auto-sell functionality
+        autoSell()
     end
 end)
