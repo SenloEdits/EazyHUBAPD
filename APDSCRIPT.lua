@@ -1,8 +1,6 @@
 -- Script for "PlaceUnit" (executes every 1 second)
 spawn(function()
     while true do
-        wait(1) -- Wait 1 second for "PlaceUnit"
-        
         local success, errorMessage = pcall(function()
             local args = {
                 [1] = "PlaceUnit",
@@ -13,25 +11,27 @@ spawn(function()
 
             game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(args))
         end)
-        
+
+        -- After every attempt, trigger the "Retry" event and wait 2 seconds
+        local retryArgs = {
+            [1] = "Retry"
+        }
+        game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(retryArgs))
+        wait(2)  -- Wait 2 seconds before retrying the action again
+
         if not success then
-            print("Failed to place unit. Retrying... Error:", errorMessage)
-            
-            -- Trigger the retry event
-            local retryArgs = {
-                [1] = "Retry"
-            }
-            game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(retryArgs))
-            wait(2)  -- Wait 2 seconds before retrying
+            print("Failed to place unit. Error:", errorMessage)
+        else
+            print("Successfully placed unit.")
         end
+
+        wait(1) -- Retry every second
     end
 end)
 
 -- Script for "UpgradeUnit" (executes every 1 second)
 spawn(function()
     while true do
-        wait(1) -- Wait 1 second for "UpgradeUnit"
-        
         local success, errorMessage = pcall(function()
             local args = {
                 [1] = "UpgradeUnit",
@@ -40,16 +40,20 @@ spawn(function()
 
             game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(args))
         end)
-        
+
+        -- After every attempt, trigger the "Retry" event and wait 2 seconds
+        local retryArgs = {
+            [1] = "Retry"
+        }
+        game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(retryArgs))
+        wait(2)  -- Wait 2 seconds before retrying the action again
+
         if not success then
-            print("Failed to upgrade unit. Retrying... Error:", errorMessage)
-            
-            -- Trigger the retry event
-            local retryArgs = {
-                [1] = "Retry"
-            }
-            game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(retryArgs))
-            wait(2)  -- Wait 2 seconds before retrying
+            print("Failed to upgrade unit. Error:", errorMessage)
+        else
+            print("Successfully upgraded unit.")
         end
+
+        wait(1) -- Retry every second
     end
 end)
