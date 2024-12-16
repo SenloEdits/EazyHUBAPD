@@ -1,98 +1,57 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 
 local Window = Fluent:CreateWindow({
     Title = "Eazy Hub " .. Fluent.Version,
     SubTitle = "by thors",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
     Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
 })
 
+-- Fluent Tab Creation
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
-local savedState = SaveManager:Load("EazyHubState", { farmingEnabled = false, autoReplayEnabled = false, autoSellEnabled = false })
-
-local farmingEnabled = savedState.farmingEnabled
-local autoReplayEnabled = savedState.autoReplayEnabled
-local autoSellEnabled = savedState.autoSellEnabled
-
-local farmingToggle = Tabs.Main:AddToggle("FarmingToggle", {
-    Title = "Enable farm",
-    Default = farmingEnabled
+-- Merged Toggle for Auto Farm and Auto Replay
+local farmingAndReplayEnabled = true  -- Always enabled
+local toggle = Tabs.Main:AddToggle("EnableFarmAndReplayToggle", {
+    Title = "Enable Auto Farm & Auto Replay",
+    Default = farmingAndReplayEnabled
 })
 
-farmingToggle:OnChanged(function(value)
-    farmingEnabled = value
-    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled })
-    print("Farming Toggle changed:", farmingEnabled)
-end)
+-- Set the toggle to always be on (enabled)
+toggle:Set(true)
 
+-- Combined script for Auto Farm and Auto Replay
 spawn(function()
     while true do
-        wait(2)
-        if farmingEnabled then
-            local args = {
+        wait(2) -- Loop every 2 seconds
+        if farmingAndReplayEnabled then
+            -- Auto Farm: PlaceUnit
+            local farmArgs = {
                 [1] = "PlaceUnit",
                 [2] = 96,
                 [3] = CFrame.new(-46.88163757324219, 9.432368278503418, -275.0870056152344) * CFrame.Angles(-0, 0, -0),
                 [4] = "96#07a1ed30-cca4-4be7-90ef-ca5fcf343952"
             }
-            game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(args))
-        end
-    end
-end)
-
-spawn(function()
-    while true do
-        wait(1)
-        if farmingEnabled then
-            local args = {
+            game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(farmArgs))
+            
+            -- Auto Upgrade: UpgradeUnit
+            local upgradeArgs = {
                 [1] = "UpgradeUnit",
                 [2] = 1
             }
-            game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(args))
+            game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(upgradeArgs))
+
+            -- Auto Replay: Retry
+            local replayArgs = {
+                [1] = "Retry"
+            }
+            game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(replayArgs))
         end
-    end
-end)
-
-local autoReplayToggle = Tabs.Main:AddToggle("AutoReplayToggle", { Title = "Auto Replay", Default = autoReplayEnabled })
-
-autoReplayToggle:OnChanged(function(value)
-    autoReplayEnabled = value
-    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled })
-
-    if autoReplayEnabled then
-        while autoReplayEnabled do
-            local args = { [1] = "Retry" }
-            game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(args))
-            wait(2)
-        end
-    end
-end)
-
-local autoSellToggle = Tabs.Main:AddToggle("AutoSellToggle", { Title = "Auto Sell after 10 minutes", Default = autoSellEnabled })
-
-local function autoSell()
-    while autoSellEnabled do
-        local args = {
-            [1] = "SellUnit",
-            [2] = 1
-        }
-        game:GetService("ReplicatedStorage").Events.Game:FireServer(unpack(args))
-        wait(600)
-    end
-end
-
-autoSellToggle:OnChanged(function(value)
-    autoSellEnabled = value
-    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled })
-    if autoSellEnabled then
-        autoSell()
     end
 end)
