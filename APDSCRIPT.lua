@@ -1,5 +1,4 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 
 -- Create the Window for Fluent GUI
 local Window = Fluent:CreateWindow({
@@ -18,12 +17,10 @@ local Tabs = {
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
--- Load saved state for the toggles
-local savedState = SaveManager:Load("EazyHubState", { farmingEnabled = false, autoReplayEnabled = false, autoSellEnabled = false })
-
-local farmingEnabled = savedState.farmingEnabled
-local autoReplayEnabled = savedState.autoReplayEnabled
-local autoSellEnabled = savedState.autoSellEnabled
+-- Initialize the farmingEnabled state
+local farmingEnabled = false
+local autoReplayEnabled = false
+local autoSellEnabled = false
 
 -- Define the farming toggle
 local farmingToggle = Tabs.Main:AddToggle("MyToggle", {
@@ -31,10 +28,9 @@ local farmingToggle = Tabs.Main:AddToggle("MyToggle", {
     Default = farmingEnabled -- Set the default state from saved state
 })
 
--- Listen for toggle state changes and save them
+-- Listen for toggle state changes
 farmingToggle:OnChanged(function(value)
     farmingEnabled = value -- Update toggle state
-    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled }) -- Save state
     print("Farming Toggle changed:", farmingEnabled)
 end)
 
@@ -73,7 +69,6 @@ local autoReplayToggle = Tabs.Main:AddToggle("MyToggle", { Title = "Auto Replay"
 
 autoReplayToggle:OnChanged(function(value)
     autoReplayEnabled = value
-    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled }) -- Save state
     print("Auto Replay Toggle changed:", autoReplayEnabled)
 
     if autoReplayEnabled then
@@ -102,10 +97,9 @@ local function autoSell()
     end
 end
 
--- Listen for Auto Sell toggle state changes and save them
+-- Listen for Auto Sell toggle state changes
 autoSellToggle:OnChanged(function(value)
     autoSellEnabled = value
-    SaveManager:Save("EazyHubState", { farmingEnabled = farmingEnabled, autoReplayEnabled = autoReplayEnabled, autoSellEnabled = autoSellEnabled }) -- Save state
     print("Auto Sell toggled:", autoSellEnabled)
 
     if autoSellEnabled then
